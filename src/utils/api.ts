@@ -1,54 +1,73 @@
-import { TodoList } from '@/features/todos/types/todo';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-if (!BASE_URL) {
-  throw new Error('NEXT_PUBLIC_BASE_URL 환경 변수가 설정되지 않았습니다.');
-}
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000/todos';
 
-const request = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`요청 실패: ${res.status} - ${errorText}`);
+export const fetchTodos = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}`);
+    if (!res.ok) {
+      throw new Error('할 일 목록을 가져오는데 실패했습니다.');
+    }
+
+    return await res.json();
+  } catch (error) {
+    throw error;
   }
-  return res.json();
 };
 
-/* 조회 */
-export const fetchTodos = async (): Promise<TodoList[]> => {
-  return request<TodoList[]>(BASE_URL, { cache: 'no-store' });
+export const addTodo = async (title: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, date: new Date(), completed: false }),
+    });
+
+    if (!res.ok) {
+      throw new Error('할 일을 추가하는데 문제가 생겼습니다.');
+    }
+
+    return await res.json();
+  } catch (error) {
+    throw error;
+  }
 };
 
-/* 생성 */
-export const createTodo = async (title: string): Promise<TodoList> => {
-  const today = new Date().toISOString().slice(0, 10);
-  const newTodo = {
-    title,
-    date: today,
-    completed: false,
-  };
+export const deleteTodo = async (id: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+    });
 
-  return request<TodoList>(BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newTodo),
-  });
+    if (!res.ok) {
+      throw new Error('할 일을 삭제하는데 문제가 생겼습니다.');
+    }
+  } catch (error) {
+    throw error;
+  }
 };
 
-/* 수정 */
-export const updateTodo = async (
-  id: string,
-  updatedFields: Partial<TodoList>,
-): Promise<TodoList> => {
-  return request<TodoList>(`${BASE_URL}/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(updatedFields),
-  });
-};
+export const toggleTodo = async ({
+  id,
+  completed,
+}: {
+  id: string;
+  completed: boolean;
+}) => {
+  try {
+    const res = await fetch(`${BASE_URL}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ completed: !completed }),
+    });
 
-/* 삭제 */
-export const deleteTodo = async (id: string): Promise<void> => {
-  await request<void>(`${BASE_URL}/${id}`, {
-    method: 'DELETE',
-  });
+    if (!res.ok) {
+      throw new Error('할 일 완료 상태를 변경하는데 문제가 생겼습니다.');
+    }
+  } catch (error) {
+    throw error;
+  }
 };

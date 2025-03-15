@@ -1,11 +1,10 @@
 {
-    "todos": [
-      {
-        "id": "1",
-        "title": "첫 번째 할 일",
-        "date": "2025-03-14",
-        "completed": false
-      }
-    ]
-  }
-  
+  "todos": [
+    {
+      "id": "1",
+      "title": "첫 번째 할 일",
+      "date": "2025-03-14",
+      "completed": false
+    }
+  ]
+}
