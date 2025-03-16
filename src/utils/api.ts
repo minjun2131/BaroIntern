@@ -1,3 +1,5 @@
+import { Todo } from '@/types/todo';
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000/todos';
 
@@ -67,6 +69,29 @@ export const toggleTodo = async ({
     if (!res.ok) {
       throw new Error('할 일 완료 상태를 변경하는데 문제가 생겼습니다.');
     }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateTodo = async (id: string, updates: Partial<Todo>) => {
+  try {
+    const res = await fetch(`${BASE_URL}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...updates,
+        date: new Date().toISOString(),
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error('할 일을 수정하는데 문제가 생겼습니다.');
+    }
+
+    return await res.json();
   } catch (error) {
     throw error;
   }
