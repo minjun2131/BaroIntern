@@ -5,12 +5,11 @@ import { useState } from 'react';
 import TodoFilter from './TodoFilter';
 import TodoItem from './TodoItem';
 import TodoLoading from './TodoLoading';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchTodos } from '@/utils/api';
 import { useToggleTodo } from '@/hooks/useToggleTodo';
 import { useUpdateTodo } from '@/hooks/useUpdateTodo';
 import { useDeleteTodo } from '@/hooks/useDeleteTodo';
-import { useQueryClient } from '@tanstack/react-query';
 
 type TabType = 'all' | 'active' | 'completed';
 
@@ -18,6 +17,7 @@ const TodoList = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [currentTab, setCurrentTab] = useState<TabType>('all');
+  const queryClient = useQueryClient();
 
   const {
     data: todos = [],
@@ -32,7 +32,6 @@ const TodoList = () => {
   const toggleMutation = useToggleTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
-  const queryClient = useQueryClient();
 
   if (isPending) {
     return <TodoLoading />;
@@ -58,14 +57,16 @@ const TodoList = () => {
   });
 
   const handleToggle = (todo: Todo) => {
+    const optimisticTodos = todos.map((t) =>
+      t.id === todo.id ? { ...t, completed: !todo.completed } : t,
+    );
+    queryClient.setQueryData(['todos'], optimisticTodos);
+
     toggleMutation.mutate(
       { id: todo.id, completed: todo.completed },
       {
-        onSuccess: () => {
-          const updatedTodos = todos.map((t) =>
-            t.id === todo.id ? { ...t, completed: !t.completed } : t,
-          );
-          queryClient.setQueryData(['todos'], updatedTodos);
+        onError: () => {
+          queryClient.setQueryData(['todos'], todos);
         },
       },
     );
@@ -80,19 +81,40 @@ const TodoList = () => {
     if (editText.trim() !== '') {
       const todo = todos.find((t: Todo) => t.id === id);
       if (todo) {
-        updateTodoMutation.mutate({
-          id,
-          title: editText,
-          completed: todo.completed,
-        });
-        setEditingId(null);
-        setEditText('');
+        const optimisticTodos = todos.map((t) =>
+          t.id === id ? { ...t, title: editText } : t,
+        );
+        queryClient.setQueryData(['todos'], optimisticTodos);
+
+        updateTodoMutation.mutate(
+          {
+            id,
+            title: editText,
+            completed: todo.completed,
+          },
+          {
+            onError: () => {
+              queryClient.setQueryData(['todos'], todos);
+            },
+            onSettled: () => {
+              setEditingId(null);
+              setEditText('');
+            },
+          },
+        );
       }
     }
   };
 
   const handleDelete = (id: string) => {
-    deleteTodoMutation.mutate(id);
+    const optimisticTodos = todos.filter((t) => t.id !== id);
+    queryClient.setQueryData(['todos'], optimisticTodos);
+
+    deleteTodoMutation.mutate(id, {
+      onError: () => {
+        queryClient.setQueryData(['todos'], todos);
+      },
+    });
   };
 
   const getEmptyMessage = () => {
