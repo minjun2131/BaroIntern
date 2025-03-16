@@ -22,8 +22,6 @@ const TodoList = () => {
   const { data, isError, isPending } = useQuery<Todo[], Error>({
     queryKey: ['todos'],
     queryFn: fetchTodos,
-    initialData: [],
-    staleTime: Infinity,
   });
 
   const todos = data ?? [];
