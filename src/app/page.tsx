@@ -7,14 +7,27 @@ import {
 import TodoForm from '@/components/TodoForm';
 import TodoList from '@/components/TodoList';
 import { Suspense } from 'react';
+import TodoLoading from '@/components/TodoLoading';
 
 export default async function Home() {
-  const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ['todos'],
-    queryFn: fetchTodos,
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        retry: false,
+      },
+    },
   });
+
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: ['todos'],
+      queryFn: fetchTodos,
+    });
+  } catch (error) {
+    console.error('Prefetch failed:', error);
+  }
 
   return (
     <div className="mx-auto mb-12 w-full max-w-[90%] rounded-md bg-white p-6 shadow-md sm:max-w-[768px]">
@@ -25,7 +38,7 @@ export default async function Home() {
       {/* 할 일 추가 input과 버튼 */}
       <HydrationBoundary state={dehydrate(queryClient)}>
         <TodoForm />
-        <Suspense>
+        <Suspense fallback={<TodoLoading />}>
           <TodoList />
         </Suspense>
       </HydrationBoundary>
