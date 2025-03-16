@@ -50,7 +50,7 @@ const TodoItem = ({
   };
 
   return (
-    <div>테스트</div>
+    <li>{todo.title}</li>
     // <li
     //   onClick={handleCardClick}
     //   className={`flex min-h-[90px] cursor-pointer flex-col justify-between rounded-lg p-3 shadow-sm transition-all sm:min-h-[100px] sm:p-5 ${
