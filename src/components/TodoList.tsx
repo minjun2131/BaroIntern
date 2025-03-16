@@ -54,8 +54,6 @@ const TodoList = () => {
     toggleMutation.mutate({
       id: todo.id,
       completed: todo.completed,
-      title: todo.title,
-      date: todo.date,
     });
   };
 
@@ -72,7 +70,6 @@ const TodoList = () => {
           id,
           title: editText,
           completed: todo.completed,
-          date: todo.date,
         });
         setEditingId(null);
         setEditText('');

@@ -6,7 +6,6 @@ interface UpdateTodoInput {
   id: string;
   title: string;
   completed: boolean;
-  date: string;
 }
 
 interface Context {
@@ -17,7 +16,8 @@ export const useUpdateTodo = () => {
   const queryClient = useQueryClient();
 
   return useMutation<Todo, Error, UpdateTodoInput, Context>({
-    mutationFn: (todo) => updateTodo(todo.id, todo),
+    mutationFn: ({ id, title, completed }) =>
+      updateTodo(id, { title, completed }),
     onMutate: async (newTodo) => {
       await queryClient.cancelQueries({ queryKey: ['todos'] });
       const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
@@ -25,7 +25,12 @@ export const useUpdateTodo = () => {
       queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
         return old.map((todo) =>
           todo.id === newTodo.id
-            ? { ...todo, ...newTodo, date: new Date().toISOString() }
+            ? {
+                ...todo,
+                title: newTodo.title,
+                completed: newTodo.completed,
+                date: new Date().toISOString(),
+              }
             : todo,
         );
       });

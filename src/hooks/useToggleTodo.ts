@@ -5,8 +5,6 @@ import { Todo } from '@/types/todo';
 interface ToggleTodoInput {
   id: string;
   completed: boolean;
-  title: string;
-  date: string;
 }
 
 interface Context {
@@ -17,20 +15,17 @@ export const useToggleTodo = () => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, ToggleTodoInput, Context>({
-    mutationFn: ({ id, completed }) => toggleTodo({ id, completed }),
-    onMutate: async (todo) => {
+    mutationFn: toggleTodo,
+    onMutate: async ({ id, completed }) => {
       await queryClient.cancelQueries({ queryKey: ['todos'] });
       const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
 
+      // 낙관적 업데이트
       queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
-        return old.map((oldTodo) =>
-          oldTodo.id === todo.id
-            ? {
-                ...oldTodo,
-                completed: !todo.completed,
-                date: new Date().toISOString(),
-              }
-            : oldTodo,
+        return old.map((todo) =>
+          todo.id === id
+            ? { ...todo, completed: !completed, date: new Date().toISOString() }
+            : todo,
         );
       });
 
