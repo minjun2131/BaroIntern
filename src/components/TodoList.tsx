@@ -124,23 +124,23 @@ const TodoList = () => {
   return (
     <div className="mx-auto w-full">
       <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
-      {filteredTodos.length === 0 ? (
+      {todos.length === 0 ? (
         <div className="flex h-[42px] items-center justify-center text-gray-500">
           {getEmptyMessage()}
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4">
-          {filteredTodos.map((todo: Todo) => (
+          {todos.map((todo: Todo) => (
             <TodoItem
-              key={filteredTodos[0]?.id}
-              todo={filteredTodos[0]}
-              isEditing={false}
-              editText=""
-              onEditClick={() => {}}
-              onEditChange={() => {}}
-              onEditSubmit={() => {}}
-              onToggle={() => {}}
-              onDelete={() => {}}
+              key={todo.id}
+              todo={todo}
+              isEditing={editingId === todo.id}
+              editText={editText}
+              onEditClick={handleEditClick}
+              onEditChange={setEditText}
+              onEditSubmit={handleUpdateTitle}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
             />
           ))}
         </ul>
