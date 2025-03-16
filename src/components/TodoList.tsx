@@ -10,6 +10,7 @@ import { fetchTodos } from '@/utils/api';
 import { useToggleTodo } from '@/hooks/useToggleTodo';
 import { useUpdateTodo } from '@/hooks/useUpdateTodo';
 import { useDeleteTodo } from '@/hooks/useDeleteTodo';
+import { useQueryClient } from '@tanstack/react-query';
 
 type TabType = 'all' | 'active' | 'completed';
 
@@ -19,27 +20,33 @@ const TodoList = () => {
   const [currentTab, setCurrentTab] = useState<TabType>('all');
 
   const {
-    data: todos,
+    data: todos = [],
     isPending,
     isError,
   } = useQuery<Todo[]>({
     queryKey: ['todos'],
     queryFn: fetchTodos,
+    staleTime: Infinity,
   });
 
   const toggleMutation = useToggleTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
+  const queryClient = useQueryClient();
 
   if (isPending) {
     return <TodoLoading />;
   }
 
   if (isError) {
-    throw new Error('데이터를 불러오는데 실패했습니다.');
+    return (
+      <div className="flex h-[42px] items-center justify-center text-red-500">
+        데이터를 불러오는데 실패했습니다.
+      </div>
+    );
   }
 
-  const filteredTodos = todos?.filter((todo) => {
+  const filteredTodos = todos.filter((todo: Todo) => {
     switch (currentTab) {
       case 'active':
         return !todo.completed;
@@ -51,10 +58,17 @@ const TodoList = () => {
   });
 
   const handleToggle = (todo: Todo) => {
-    toggleMutation.mutate({
-      id: todo.id,
-      completed: todo.completed,
-    });
+    toggleMutation.mutate(
+      { id: todo.id, completed: todo.completed },
+      {
+        onSuccess: () => {
+          const updatedTodos = todos.map((t) =>
+            t.id === todo.id ? { ...t, completed: !t.completed } : t,
+          );
+          queryClient.setQueryData(['todos'], updatedTodos);
+        },
+      },
+    );
   };
 
   const handleEditClick = (todo: Todo) => {
@@ -64,7 +78,7 @@ const TodoList = () => {
 
   const handleUpdateTitle = (id: string) => {
     if (editText.trim() !== '') {
-      const todo = todos?.find((t: Todo) => t.id === id);
+      const todo = todos.find((t: Todo) => t.id === id);
       if (todo) {
         updateTodoMutation.mutate({
           id,
@@ -95,13 +109,13 @@ const TodoList = () => {
   return (
     <div className="mx-auto w-full">
       <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
-      {filteredTodos?.length === 0 ? (
+      {filteredTodos.length === 0 ? (
         <div className="flex h-[42px] items-center justify-center text-gray-500">
           {getEmptyMessage()}
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4">
-          {filteredTodos?.map((todo) => (
+          {filteredTodos.map((todo: Todo) => (
             <TodoItem
               key={todo.id}
               todo={todo}
