@@ -26,7 +26,7 @@ export default async function Home() {
       {/* 할 일 추가 input과 버튼 */}
       <HydrationBoundary state={dehydrate(queryClient)}>
         <TodoForm />
-        <Suspense fallback={<TodoLoading />}>{/* <TodoList /> */}</Suspense>
+        <Suspense fallback={<TodoLoading />}><TodoList /></Suspense>
       </HydrationBoundary>
     </div>
   );
