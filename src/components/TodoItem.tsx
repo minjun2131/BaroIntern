@@ -9,6 +9,7 @@ import {
   Square,
   CheckSquare,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface TodoItemProps {
   todo: Todo;
@@ -31,6 +32,20 @@ const TodoItem = ({
   onToggle,
   onDelete,
 }: TodoItemProps) => {
+  const [formattedDate, setFormattedDate] = useState(todo.date);
+
+  useEffect(() => {
+    const formatted = new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(todo.date));
+
+    setFormattedDate(formatted);
+  }, []);
+
   const handleCardClick = (e: React.MouseEvent) => {
     // 버튼 클릭 시에는 토글하지 않음
     if (!(e.target instanceof HTMLButtonElement) && !isEditing) {
@@ -86,7 +101,7 @@ const TodoItem = ({
             </div>
             <div className="flex items-center gap-1 pl-[7px] text-xs text-purple-400 sm:text-sm">
               <Calendar size={12} className="sm:h-4 sm:w-4" />
-              <span>{todo.date}</span>
+              <span>{formattedDate}</span>
             </div>
           </>
         )}
