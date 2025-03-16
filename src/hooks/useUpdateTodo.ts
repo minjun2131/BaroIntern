@@ -2,9 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateTodo } from '@/utils/api';
 import { Todo } from '@/types/todo';
 
-interface UpdateTodoParams {
+interface UpdateTodoInput {
   id: string;
   title: string;
+  completed: boolean;
+  date: string;
 }
 
 interface Context {
@@ -14,17 +16,16 @@ interface Context {
 export const useUpdateTodo = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<Todo, Error, UpdateTodoParams, Context>({
-    mutationFn: ({ id, title }) => updateTodo(id, { title }),
-    onMutate: async ({ id, title }) => {
+  return useMutation<Todo, Error, UpdateTodoInput, Context>({
+    mutationFn: (todo) => updateTodo(todo.id, todo),
+    onMutate: async (newTodo) => {
       await queryClient.cancelQueries({ queryKey: ['todos'] });
-
       const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
 
       queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
         return old.map((todo) =>
-          todo.id === id
-            ? { ...todo, title, date: new Date().toISOString() }
+          todo.id === newTodo.id
+            ? { ...todo, ...newTodo, date: new Date().toISOString() }
             : todo,
         );
       });
@@ -37,8 +38,8 @@ export const useUpdateTodo = () => {
       }
       console.error('할 일 수정에 실패했습니다:', err);
     },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['todos'] });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
 };

@@ -1,19 +1,19 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTodos, toggleTodo } from '@/utils/api';
 import { Todo } from '@/types/todo';
-import { useUpdateTodo } from '@/hooks/useUpdateTodo';
-import { useDeleteTodo } from '@/hooks/useDeleteTodo';
 import { useState } from 'react';
 import TodoFilter from './TodoFilter';
 import TodoItem from './TodoItem';
 import TodoLoading from './TodoLoading';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTodos } from '@/utils/api';
+import { useToggleTodo } from '@/hooks/useToggleTodo';
+import { useUpdateTodo } from '@/hooks/useUpdateTodo';
+import { useDeleteTodo } from '@/hooks/useDeleteTodo';
 
 type TabType = 'all' | 'active' | 'completed';
 
 const TodoList = () => {
-  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [currentTab, setCurrentTab] = useState<TabType>('all');
@@ -26,6 +26,10 @@ const TodoList = () => {
     queryKey: ['todos'],
     queryFn: fetchTodos,
   });
+
+  const toggleMutation = useToggleTodo();
+  const updateTodoMutation = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
 
   if (isPending) {
     return <TodoLoading />;
@@ -46,18 +50,13 @@ const TodoList = () => {
     }
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: toggleTodo,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-    },
-  });
-
-  const updateTodoMutation = useUpdateTodo();
-  const deleteTodoMutation = useDeleteTodo();
-
   const handleToggle = (todo: Todo) => {
-    toggleMutation.mutate({ id: todo.id, completed: todo.completed });
+    toggleMutation.mutate({
+      id: todo.id,
+      completed: todo.completed,
+      title: todo.title,
+      date: todo.date,
+    });
   };
 
   const handleEditClick = (todo: Todo) => {
@@ -67,9 +66,17 @@ const TodoList = () => {
 
   const handleUpdateTitle = async (id: string) => {
     if (editText.trim() !== '') {
-      await updateTodoMutation.mutateAsync({ id, title: editText });
-      setEditingId(null);
-      setEditText('');
+      const todo = todos?.find((t: Todo) => t.id === id);
+      if (todo) {
+        await updateTodoMutation.mutateAsync({
+          id,
+          title: editText,
+          completed: todo.completed,
+          date: todo.date,
+        });
+        setEditingId(null);
+        setEditText('');
+      }
     }
   };
 
