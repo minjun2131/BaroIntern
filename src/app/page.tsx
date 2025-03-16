@@ -10,24 +10,12 @@ import { Suspense } from 'react';
 import TodoLoading from '@/components/TodoLoading';
 
 export default async function Home() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-        retry: false,
-      },
-    },
-  });
+  const queryClient = new QueryClient();
 
-  try {
-    await queryClient.prefetchQuery({
-      queryKey: ['todos'],
-      queryFn: fetchTodos,
-    });
-  } catch (error) {
-    console.error('Prefetch failed:', error);
-  }
+  await queryClient.prefetchQuery({
+    queryKey: ['todos'],
+    queryFn: () => fetchTodos(),
+  });
 
   return (
     <div className="mx-auto mb-12 w-full max-w-[90%] rounded-md bg-white p-6 shadow-md sm:max-w-[768px]">
