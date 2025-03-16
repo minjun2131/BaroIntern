@@ -112,37 +112,37 @@ const TodoList = () => {
     });
   };
 
-  // const getEmptyMessage = () => {
-  //   switch (currentTab) {
-  //     case 'active':
-  //       return '해야 할 일이 없습니다.';
-  //     case 'completed':
-  //       return '완료한 일이 없습니다.';
-  //     default:
-  //       return '할 일이 없습니다.';
-  //   }
-  // };
+  const getEmptyMessage = () => {
+    switch (currentTab) {
+      case 'active':
+        return '해야 할 일이 없습니다.';
+      case 'completed':
+        return '완료한 일이 없습니다.';
+      default:
+        return '할 일이 없습니다.';
+    }
+  };
 
   return (
     <div className="mx-auto w-full">
       <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
       {filteredTodos.length === 0 ? (
         <div className="flex h-[42px] items-center justify-center text-gray-500">
-          {/* {getEmptyMessage()} */}
+          {getEmptyMessage()}
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4">
           {filteredTodos.map((todo: Todo) => (
             <TodoItem
-              key={todo.id}
-              todo={todo}
-              isEditing={editingId === todo.id}
-              editText={editText}
-              onEditClick={handleEditClick}
-              onEditChange={setEditText}
-              onEditSubmit={handleUpdateTitle}
-              onToggle={handleToggle}
-              onDelete={handleDelete}
+              key={filteredTodos[0]?.id}
+              todo={filteredTodos[0]}
+              isEditing={false}
+              editText=""
+              onEditClick={() => {}}
+              onEditChange={() => {}}
+              onEditSubmit={() => {}}
+              onToggle={() => {}}
+              onDelete={() => {}}
             />
           ))}
         </ul>
