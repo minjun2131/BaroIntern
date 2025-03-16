@@ -5,34 +5,16 @@ import {
   dehydrate,
 } from '@tanstack/react-query';
 import TodoForm from '@/components/TodoForm';
-import dynamic from 'next/dynamic';
-
-const TodoList = dynamic(() => import('@/components/TodoList'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-    </div>
-  ),
-});
+import TodoList from '@/components/TodoList';
+import { Suspense } from 'react';
 
 export default async function Home() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: Infinity,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-      },
-    },
-  });
+  const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ['todos'],
     queryFn: fetchTodos,
   });
-
-  const dehydratedState = dehydrate(queryClient);
 
   return (
     <div className="mx-auto mb-12 w-full max-w-[90%] rounded-md bg-white p-6 shadow-md sm:max-w-[768px]">
@@ -41,9 +23,17 @@ export default async function Home() {
         Todo List
       </h1>
       {/* 할 일 추가 input과 버튼 */}
-      <HydrationBoundary state={dehydratedState}>
+      <HydrationBoundary state={dehydrate(queryClient)}>
         <TodoForm />
-        <TodoList />
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+            </div>
+          }
+        >
+          <TodoList />
+        </Suspense>
       </HydrationBoundary>
     </div>
   );

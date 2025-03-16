@@ -20,20 +20,20 @@ const TodoList = () => {
   const queryClient = useQueryClient();
 
   const {
-    data: todos,
+    data: todos = [],
     isPending,
     isError,
   } = useQuery<Todo[]>({
     queryKey: ['todos'],
     queryFn: fetchTodos,
-    initialData: [],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const toggleMutation = useToggleTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
-  if (!todos || isPending) {
+  if (isPending) {
     return <TodoLoading />;
   }
 
