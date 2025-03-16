@@ -22,18 +22,18 @@ export const useUpdateTodo = () => {
       await queryClient.cancelQueries({ queryKey: ['todos'] });
       const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
 
-      queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
-        return old.map((todo) =>
-          todo.id === newTodo.id
-            ? {
-                ...todo,
-                title: newTodo.title,
-                completed: newTodo.completed,
-                date: new Date().toISOString(),
-              }
-            : todo,
-        );
-      });
+      const newTodos = (previousTodos || []).map((todo) =>
+        todo.id === newTodo.id
+          ? {
+              ...todo,
+              title: newTodo.title,
+              completed: newTodo.completed,
+              date: new Date().toISOString(),
+            }
+          : todo,
+      );
+
+      queryClient.setQueryData<Todo[]>(['todos'], newTodos);
 
       return { previousTodos };
     },
@@ -43,8 +43,11 @@ export const useUpdateTodo = () => {
       }
       console.error('할 일 수정에 실패했습니다:', err);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    onSuccess: () => {
+      const currentTodos = queryClient.getQueryData<Todo[]>(['todos']);
+      if (currentTodos) {
+        queryClient.setQueryData<Todo[]>(['todos'], currentTodos);
+      }
     },
   });
 };

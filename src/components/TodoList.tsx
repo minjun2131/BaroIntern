@@ -62,11 +62,11 @@ const TodoList = () => {
     setEditText(todo.title);
   };
 
-  const handleUpdateTitle = async (id: string) => {
+  const handleUpdateTitle = (id: string) => {
     if (editText.trim() !== '') {
       const todo = todos?.find((t: Todo) => t.id === id);
       if (todo) {
-        await updateTodoMutation.mutateAsync({
+        updateTodoMutation.mutate({
           id,
           title: editText,
           completed: todo.completed,
