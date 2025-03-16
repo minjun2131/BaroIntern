@@ -124,13 +124,13 @@ const TodoList = () => {
   return (
     <div className="mx-auto w-full">
       <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
-      {todos.length === 0 ? (
+      {filteredTodos.length === 0 ? (
         <div className="flex h-[42px] items-center justify-center text-gray-500">
           {getEmptyMessage()}
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4">
-          {todos.map((todo: Todo) => (
+          {filteredTodos.map((todo: Todo) => (
             <li>{todo.id}</li>
             // <TodoItem
             //   key={todo.id}
