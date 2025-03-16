@@ -1,24 +1,37 @@
 import { toggleTodo } from '@/utils/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Todo } from '@/types/todo';
 
 export const useToggleTodo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: toggleTodo,
-    onSuccess: (_, { id, completed }) => {
-      // ✅ 캐싱된 데이터 즉시 업데이트 (낙관적 업데이트 가능)
-      queryClient.setQueryData(['todos'], (oldTodos: any) =>
-        oldTodos?.map((todo: any) =>
-          todo.id === id ? { ...todo, completed: !completed } : todo,
-        ),
-      );
+    onMutate: async ({ id, completed }) => {
+      // 진행 중인 todos 쿼리 취소
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
 
-      // ✅ 서버 데이터 최신화
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      // 이전 상태 저장
+      const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
+
+      // 낙관적으로 UI 업데이트
+      queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
+        return old.map((todo) =>
+          todo.id === id ? { ...todo, completed: !completed } : todo,
+        );
+      });
+
+      // 이전 상태 반환 (롤백을 위해)
+      return { previousTodos };
     },
-    onError: (error) => {
-      console.error('할 일 완료 상태 변경에 실패했습니다:', error);
+    onError: (err, _, context) => {
+      // 에러 발생 시 이전 상태로 롤백
+      queryClient.setQueryData(['todos'], context?.previousTodos);
+      console.error('할 일 완료 상태 변경에 실패했습니다:', err);
+    },
+    onSettled: () => {
+      // 성공/실패 여부와 관계없이 서버와 동기화
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
 };
