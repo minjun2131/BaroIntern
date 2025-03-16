@@ -21,7 +21,7 @@ const TodoList = () => {
 
   const {
     data: todos = [],
-    isPending,
+    isLoading,
     isError,
   } = useQuery<Todo[]>({
     queryKey: ['todos'],
@@ -33,7 +33,7 @@ const TodoList = () => {
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
-  if (isPending) {
+  if (isLoading) {
     return <TodoLoading />;
   }
 
