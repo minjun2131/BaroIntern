@@ -7,28 +7,38 @@ interface UpdateTodoParams {
   title: string;
 }
 
+interface Context {
+  previousTodos: Todo[] | undefined;
+}
+
 export const useUpdateTodo = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, title }: UpdateTodoParams) => updateTodo(id, { title }),
+  return useMutation<Todo, Error, UpdateTodoParams, Context>({
+    mutationFn: ({ id, title }) => updateTodo(id, { title }),
     onMutate: async ({ id, title }) => {
       await queryClient.cancelQueries({ queryKey: ['todos'] });
 
       const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
 
       queryClient.setQueryData<Todo[]>(['todos'], (old = []) => {
-        return old.map((todo) => (todo.id === id ? { ...todo, title } : todo));
+        return old.map((todo) =>
+          todo.id === id
+            ? { ...todo, title, date: new Date().toISOString() }
+            : todo,
+        );
       });
 
       return { previousTodos };
     },
     onError: (err, _, context) => {
-      queryClient.setQueryData(['todos'], context?.previousTodos);
+      if (context?.previousTodos) {
+        queryClient.setQueryData(['todos'], context.previousTodos);
+      }
       console.error('할 일 수정에 실패했습니다:', err);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
 };
