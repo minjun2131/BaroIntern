@@ -131,18 +131,17 @@ const TodoList = () => {
       ) : (
         <ul className="grid grid-cols-1 gap-4">
           {filteredTodos.map((todo: Todo) => (
-            <li>{todo.id}</li>
-            // <TodoItem
-            //   key={todo.id}
-            //   todo={todo}
-            //   isEditing={editingId === todo.id}
-            //   editText={editText}
-            //   onEditClick={handleEditClick}
-            //   onEditChange={setEditText}
-            //   onEditSubmit={handleUpdateTitle}
-            //   onToggle={handleToggle}
-            //   onDelete={handleDelete}
-            // />
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              isEditing={false} // 고정값으로 테스트
+              editText=""
+              onEditClick={handleEditClick}
+              onEditChange={setEditText}
+              onEditSubmit={handleUpdateTitle}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+            />
           ))}
         </ul>
       )}

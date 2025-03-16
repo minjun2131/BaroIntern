@@ -78,9 +78,6 @@ const TodoItem = ({
                   onToggle(todo);
                 }}
                 className="rounded-full p-1 text-purple-600 hover:bg-purple-200 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                aria-label={
-                  todo.completed ? '할 일 미완료로 표시' : '할 일 완료로 표시'
-                }
               >
                 {todo.completed ? (
                   <CheckSquare size={20} className="sm:h-6 sm:w-6" />
