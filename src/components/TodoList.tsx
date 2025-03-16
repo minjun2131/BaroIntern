@@ -131,17 +131,18 @@ const TodoList = () => {
       ) : (
         <ul className="grid grid-cols-1 gap-4">
           {todos.map((todo: Todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              isEditing={editingId === todo.id}
-              editText={editText}
-              onEditClick={handleEditClick}
-              onEditChange={setEditText}
-              onEditSubmit={handleUpdateTitle}
-              onToggle={handleToggle}
-              onDelete={handleDelete}
-            />
+            <li>{todo.id}</li>
+            // <TodoItem
+            //   key={todo.id}
+            //   todo={todo}
+            //   isEditing={editingId === todo.id}
+            //   editText={editText}
+            //   onEditClick={handleEditClick}
+            //   onEditChange={setEditText}
+            //   onEditSubmit={handleUpdateTitle}
+            //   onToggle={handleToggle}
+            //   onDelete={handleDelete}
+            // />
           ))}
         </ul>
       )}
