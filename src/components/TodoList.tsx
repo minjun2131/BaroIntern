@@ -1,7 +1,7 @@
 'use client';
 
 import { Todo } from '@/types/todo';
-import { useState, useTransition } from 'react';
+import { useState, useCallback } from 'react';
 import TodoFilter from './TodoFilter';
 import TodoItem from './TodoItem';
 import TodoLoading from './TodoLoading';
@@ -18,42 +18,19 @@ const TodoList = () => {
   const [editText, setEditText] = useState('');
   const [currentTab, setCurrentTab] = useState<TabType>('all');
   const queryClient = useQueryClient();
-  const [isPending, startTransition] = useTransition();
 
-  const { data, isError } = useQuery<Todo[], Error>({
+  const { data: todos = [], isError } = useQuery<Todo[], Error>({
     queryKey: ['todos'],
     queryFn: fetchTodos,
     initialData: [],
-    staleTime: Infinity,
   });
-
-  const todos = data ?? [];
 
   const toggleMutation = useToggleTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
-  if (isError) {
-    return (
-      <div className="flex h-[42px] items-center justify-center text-red-500">
-        데이터를 불러오는데 실패했습니다.
-      </div>
-    );
-  }
-
-  const filteredTodos = todos.filter((todo: Todo) => {
-    switch (currentTab) {
-      case 'active':
-        return !todo.completed;
-      case 'completed':
-        return todo.completed;
-      default:
-        return true;
-    }
-  });
-
-  const handleToggle = (todo: Todo) => {
-    startTransition(() => {
+  const handleToggle = useCallback(
+    (todo: Todo) => {
       const optimisticTodos = todos.map((t: Todo) =>
         t.id === todo.id ? { ...t, completed: !todo.completed } : t,
       );
@@ -67,19 +44,20 @@ const TodoList = () => {
           },
         },
       );
-    });
-  };
+    },
+    [todos, queryClient, toggleMutation],
+  );
 
-  const handleEditClick = (todo: Todo) => {
+  const handleEditClick = useCallback((todo: Todo) => {
     setEditingId(todo.id);
     setEditText(todo.title);
-  };
+  }, []);
 
-  const handleUpdateTitle = (id: string) => {
-    if (editText.trim() !== '') {
-      const todo = todos.find((t: Todo) => t.id === id);
-      if (todo) {
-        startTransition(() => {
+  const handleUpdateTitle = useCallback(
+    (id: string) => {
+      if (editText.trim() !== '') {
+        const todo = todos.find((t: Todo) => t.id === id);
+        if (todo) {
           const optimisticTodos = todos.map((t: Todo) =>
             t.id === id ? { ...t, title: editText } : t,
           );
@@ -101,13 +79,14 @@ const TodoList = () => {
               },
             },
           );
-        });
+        }
       }
-    }
-  };
+    },
+    [editText, todos, queryClient, updateTodoMutation],
+  );
 
-  const handleDelete = (id: string) => {
-    startTransition(() => {
+  const handleDelete = useCallback(
+    (id: string) => {
       const optimisticTodos = todos.filter((t: Todo) => t.id !== id);
       queryClient.setQueryData(['todos'], optimisticTodos);
 
@@ -116,10 +95,11 @@ const TodoList = () => {
           queryClient.setQueryData(['todos'], todos);
         },
       });
-    });
-  };
+    },
+    [todos, queryClient, deleteTodoMutation],
+  );
 
-  const getEmptyMessage = () => {
+  const getEmptyMessage = useCallback(() => {
     switch (currentTab) {
       case 'active':
         return '해야 할 일이 없습니다.';
@@ -128,11 +108,26 @@ const TodoList = () => {
       default:
         return '할 일이 없습니다.';
     }
-  };
+  }, [currentTab]);
 
-  if (isPending) {
-    return <TodoLoading />;
+  if (isError) {
+    return (
+      <div className="flex h-[42px] items-center justify-center text-red-500">
+        데이터를 불러오는데 실패했습니다.
+      </div>
+    );
   }
+
+  const filteredTodos = todos.filter((todo: Todo) => {
+    switch (currentTab) {
+      case 'active':
+        return !todo.completed;
+      case 'completed':
+        return todo.completed;
+      default:
+        return true;
+    }
+  });
 
   return (
     <div className="mx-auto w-full">
