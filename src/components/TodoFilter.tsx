@@ -1,3 +1,5 @@
+'use client';
+
 type TabType = 'all' | 'active' | 'completed';
 
 interface TodoFilterProps {
