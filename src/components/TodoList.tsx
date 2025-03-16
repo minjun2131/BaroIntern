@@ -14,10 +14,10 @@ import { useDeleteTodo } from '@/hooks/useDeleteTodo';
 type TabType = 'all' | 'active' | 'completed';
 
 const TodoList = () => {
-  // const [editingId, setEditingId] = useState<string | null>(null);
-  // const [editText, setEditText] = useState('');
-  // const [currentTab, setCurrentTab] = useState<TabType>('all');
-  // const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [currentTab, setCurrentTab] = useState<TabType>('all');
+  const queryClient = useQueryClient();
 
   // const { data, isError, isPending } = useQuery<Todo[], Error>({
   //   queryKey: ['todos'],
@@ -124,31 +124,9 @@ const TodoList = () => {
   // };
 
   return (
-    <div>테스트</div>
-    // <div className="mx-auto w-full">
-    //   <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
-    //   {filteredTodos.length === 0 ? (
-    //     <div className="flex h-[42px] items-center justify-center text-gray-500">
-    //       {/* {getEmptyMessage()} */}
-    //     </div>
-    //   ) : (
-    //     <ul className="grid grid-cols-1 gap-4">
-    //       {filteredTodos.map((todo: Todo) => (
-    //         <TodoItem
-    //           key={todo.id}
-    //           todo={todo}
-    //           isEditing={editingId === todo.id}
-    //           editText={editText}
-    //           onEditClick={handleEditClick}
-    //           onEditChange={setEditText}
-    //           onEditSubmit={handleUpdateTitle}
-    //           onToggle={handleToggle}
-    //           onDelete={handleDelete}
-    //         />
-    //       ))}
-    //     </ul>
-    //   )}
-    // </div>
+    <div className="mx-auto w-full">
+      <TodoFilter currentTab={currentTab} onTabChange={setCurrentTab} />
+    </div>
   );
 };
 
